@@ -1,0 +1,11 @@
+OBJ/
+
+
+*.bak
+*.yang
+USER/DebugConfig/*.dbgconf
+USER/RTE/RTE_Components.h
+MDK-ARM/hidOnly/
+*.SunDeqing
+
+

@@ -18,7 +18,7 @@
 #define FLASH_START_ADDR        0x08005000       // Flash start address
 
 #define FLASH_SIZE              (100*1024*1024)  // 100M
-#define FLASH_PAGE_SIZE         (2*1024)         // 2k Bytes per page
+#define FLASH_PAGE_SIZE         (1*1024)         // 1k Bytes per page STM32F103C8T6
 #define FLASH_WAIT_TIMEOUT      100000
 
 typedef __packed struct

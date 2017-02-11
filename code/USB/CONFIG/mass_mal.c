@@ -35,9 +35,9 @@
 #include "usart.h"
 #include "FAT16.h"
 
-#define     FLASH_START_ADDR        0x08016000       // Flash start address 
+//#define     FLASH_START_ADDR        0x08016000       // Flash start address 
 #define     FLASH_SIZE              (100*1024*1024)  // 100M
-#define     FLASH_PAGE_SIZE         (2*1024)         // 2k Bytes per page
+#define     FLASH_PAGE_SIZE_MAL         (2*1024)         // 2k Bytes per page
 #define     FLASH_WAIT_TIMEOUT      100000
 
 /* Private typedef -----------------------------------------------------------*/
@@ -127,8 +127,8 @@ uint16_t MAL_GetStatus (uint8_t lun)
     
    	if (lun == 0)
    	{
-  		Mass_Block_Count[0] = FLASH_SIZE/FLASH_PAGE_SIZE; 
-		Mass_Block_Size[0]  = FLASH_PAGE_SIZE;                    
+  		Mass_Block_Count[0] = FLASH_SIZE/FLASH_PAGE_SIZE_MAL; 
+		Mass_Block_Size[0]  = FLASH_PAGE_SIZE_MAL;                    
 		Mass_Memory_Size[0] = FLASH_SIZE;        
         
 		result = MAL_OK;

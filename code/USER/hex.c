@@ -44,7 +44,7 @@ uint8_t hex_findobject(HEX_OBJ_t* obj, uint8_t ch)
 
 	if(NULL == obj)
 	{
-		return HEX_E_ERROR;
+		return (uint8_t)HEX_E_ERROR;
 	}
 
 	switch(obj->state)
@@ -88,7 +88,7 @@ uint8_t hex_findobject(HEX_OBJ_t* obj, uint8_t ch)
 					else  // Error
 					{
 						hex_resetobject(obj);
-						result = HEX_E_ERROR;
+						result = (uint8_t)HEX_E_ERROR;
 					}
 				}
 			}
@@ -127,7 +127,7 @@ uint8_t hex_findobject(HEX_OBJ_t* obj, uint8_t ch)
 						default:
 							{
 								hex_resetobject(obj);
-								result = HEX_E_ERROR;
+								result = (uint8_t)HEX_E_ERROR;
 							}
 							break;
 					}
@@ -186,7 +186,7 @@ uint8_t hex_findobject(HEX_OBJ_t* obj, uint8_t ch)
 					else         // Failured
 					{
 						hex_resetobject(obj);
-						result = HEX_E_ERROR;
+						result = (uint8_t)HEX_E_ERROR;
 					}
 				}
 			}
@@ -206,7 +206,7 @@ uint8_t hex_findobject(HEX_OBJ_t* obj, uint8_t ch)
 				else
 				{
 					hex_resetobject(obj);
-					result = HEX_E_ERROR;
+					result = (uint8_t)HEX_E_ERROR;
 				}
 			}
 			break;

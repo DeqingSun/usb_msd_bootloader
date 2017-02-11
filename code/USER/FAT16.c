@@ -184,16 +184,16 @@ const uint8_t FAT16_RootDirSector[FATDirSize]=
     0x4B,           /*13 - Create Time Tenth */
     0x9C,           /*14 - Create Time */
     0x42,           /*15 - Create Time */
-    0x92,           /*16 - Create Date */
-    0x38,           /*17 - Create Date */
-    0x92,           /*18 - Last Access Date */
-    0x38,           /*19 - Last Access Date */
+    0x49,           /*16 - Create Date, m  m  m  d  d  d  d  d */
+    0x4A,           /*17 - Create Date, y  y  y  y  y  y  y  m, indicates the binary year offset from 1980 (0-119) */
+    0x49,           /*18 - Last Access Date */
+    0x4A,           /*19 - Last Access Date */
     0x00,           /*20 - Not used in FAT16 */
     0x00,           /*21 - Not used in FAT16 */
     0x9D,           /*22 - Write Time */
     0x42,           /*23 - Write Time */
-    0x92,           /*24 - Write Date */
-    0x38,           /*25 - Write Date */
+    0x49,           /*24 - Write Date */
+    0x4A,           /*25 - Write Date */
     0x00,           /*26 - First Cluster (none, because file is empty) */
     0x00,           /*27 - First Cluster (none, because file is empty) */
     0x00,           /*28 - File Size */
@@ -314,20 +314,27 @@ uint32_t FATReadLBA(uint32_t FAT_LBA,uint8_t* data, uint32_t len)
 uint32_t FAT_RootDirWriteRequest(uint32_t FAT_LBA,uint8_t* data, uint32_t len)
 {
     FAT_DIR_t* pFile = (FAT_DIR_t*) data;
+    FAT_DIR_t* pFileFound;
     uint32_t   index = 2;
     
     pFile++; // Skip Root Dir
     pFile++; // Skip Status File
     
-    while((pFile->DIR_Attr != 0x20) && (index++ < 512))
+    pFileFound=NULL;
+    while(index++ < 512)
     {
-        pFile++;
+      if (pFile->DIR_Attr == 0x20) {
+        pFileFound=pFile;
+      }else if (pFile->DIR_Attr == 0x00){
+        break;
+      }
+      pFile++;
     }
     
     // Find it
-    if(index <= 512)
+    if(pFileFound!=NULL)
     {
-        memcpy(&FileAttr, pFile, 32);
+        memcpy(&FileAttr, pFileFound, 32);
         FileAttr.DIR_WriteTime = 0;
         FileAttr.DIR_WriteDate = 0;
     }
@@ -356,7 +363,8 @@ uint32_t FAT_DataSectorWriteRequest(uint32_t FAT_LBA,uint8_t* data, uint32_t len
         if(freeflash >= FileAttr.DIR_FileSize)
         {
             // Flash MCU
-            STMFLASH_Write(FLASH_START_ADDR + FAT_LBA - 0x12000,(u16*)data, len/2);
+            uint32_t beginLBA = 0x0E000+((FileAttr.DIR_ClusHigh<<16)+FileAttr.DIR_ClusLow)*0x2000;
+            STMFLASH_Write(FLASH_START_ADDR + FAT_LBA - beginLBA,(u16*)data, len/2);
             *filesize_write += len;
             if(*filesize_write >= filesize_total)
             {
@@ -374,15 +382,19 @@ uint32_t FAT_DataSectorWriteRequest(uint32_t FAT_LBA,uint8_t* data, uint32_t len
     {
         uint8_t result;
         
-        if(FAT_LBA == 0x12000)
+        uint32_t beginLBA = 0x0E000+((FileAttr.DIR_ClusHigh<<16)+FileAttr.DIR_ClusLow)*0x2000;
+
+        if(FAT_LBA == beginLBA)
         {
-            uint16_t flash_size = *(volatile uint16_t *) 0x1FFFF7E0;
+            uint16_t flash_size = *(volatile uint16_t *) 0x1FFFF7E0;	//Flash memory size of the device in Kbytes.
             uint16_t i = 0;
-            uint16_t free = flash_size/2 - (FLASH_START_ADDR-0x08000000)/FLASH_PAGE_SIZE;
+            uint16_t free = flash_size/1 - (FLASH_START_ADDR-0x08000000)/FLASH_PAGE_SIZE;	//in STM32F103C8T6, 1page=1K
+			FLASH_Unlock();
             for(i = 0; i < free; i++)
             {
-                FLASH_ErasePage(FLASH_START_ADDR+i*FLASH_PAGE_SIZE);
+			    FLASH_ErasePage(FLASH_START_ADDR+i*FLASH_PAGE_SIZE);
             }
+			FLASH_Lock();
         }
         
         for(i = 0; i < len; i++)
@@ -397,6 +409,7 @@ uint32_t FAT_DataSectorWriteRequest(uint32_t FAT_LBA,uint8_t* data, uint32_t len
                     {
                         FLASH_Unlock();
                         STMFLASH_Write_NoCheck(mData.addr,(u16*) mData.data,(u16)(mData.len/2));
+                        FLASH_Lock();
                     }
                 }
             }
@@ -416,8 +429,9 @@ uint32_t FAT_DataSectorWriteRequest(uint32_t FAT_LBA,uint8_t* data, uint32_t len
     else
     {
         // Can't Recognize it
+        //Do nothing
         // Cancel and Reset USB
-        system_info = SYS_EVENT_ERR_UNKOWN;
+        //system_info = SYS_EVENT_ERR_UNKOWN;
     }
 
     return len;
