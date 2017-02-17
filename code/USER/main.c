@@ -224,6 +224,36 @@ int main(void)
 	delay_init();
 	NVIC_Configuration();
 	
+	//use jumperWire for bootloader entry
+	if (0){	//B4->B11
+		bool jumpWired=TRUE;
+		GPIO_InitTypeDef  GPIO_InitStructure;
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+	
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4|GPIO_Pin_11;				 
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; 		 
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;		
+		GPIO_Init(GPIOB, &GPIO_InitStructure);	
+		delay_ms(1);
+		if (!GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_4)) jumpWired=FALSE;
+		if (!GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_11)) jumpWired=FALSE;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;				 
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;		
+		GPIO_Init(GPIOB, &GPIO_InitStructure);	
+		GPIO_ResetBits(GPIOB, GPIO_Pin_11);
+		delay_ms(2);		
+		if (GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_4)) jumpWired=FALSE;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4|GPIO_Pin_11;				 
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+		GPIO_Init(GPIOB, &GPIO_InitStructure);		
+		
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, DISABLE);
+		
+		if (!jumpWired){
+			system_info = BL_Init();
+		}
+	}
+	
 	delay_ms(500);
  	usb_port_set(0); 	//USBÏÈ¶Ï¿ª
 	delay_ms(300);

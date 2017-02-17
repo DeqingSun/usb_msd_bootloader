@@ -1,8 +1,8 @@
 OBJ/
 
-
-*.bak
-*.yang
+USER/*.lst
+USER/*.bin
+USER/*.map
 USER/DebugConfig/*.dbgconf
 USER/RTE/RTE_Components.h
 MDK-ARM/hidOnly/
